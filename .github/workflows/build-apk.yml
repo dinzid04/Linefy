@@ -1,0 +1,108 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "main"
+      - "master"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  JAVA_TOOL_OPTIONS: "-Djava.awt.headless=true"
+  STORE_PASSWORD: "android"
+  KEY_PASSWORD: "android"
+  APP_VERSION_NAME: "1.0.${{ github.run_number }}"
+
+jobs:
+  build:
+    name: Build Release APK (120FPS Optimized)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Prepare .env and Keystores
+        run: |
+          if [ ! -f .env ] && [ -f .env.example ]; then
+            cp .env.example .env
+          fi
+          if [ ! -f debug.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          if [ ! -f my-upload-key.jks ]; then
+            keytool -genkeypair -v \
+              -keystore my-upload-key.jks \
+              -storepass android \
+              -alias upload \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Lyrafy Release,O=Lyrafy,C=ID"
+          fi
+
+      - name: Build Optimized Release APK
+        run: |
+          gradle assembleRelease \
+            -Djava.awt.headless=true \
+            --no-daemon \
+            --no-configuration-cache \
+            --stacktrace
+
+      - name: Prepare Release APK File for Download
+        run: |
+          RELEASE_APK=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          cp "$RELEASE_APK" Lyrafy-release.apk
+          ls -lh Lyrafy-release.apk
+
+      - name: Upload Release APK (Recommended 120FPS) to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Lyrafy-release-apk
+          path: Lyrafy-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish Release APK to GitHub Releases
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "Lyra - Fy v1.0.${{ github.run_number }}"
+          body: |
+            Build otomatis aplikasi **Lyra - Fy (Lyrafy)** dari commit `${{ github.sha }}`.
+            - **`Lyrafy-release.apk`**: Build Release resmi teroptimasi penuh untuk performa scrolling 60–120 FPS super mulus.
+          files: |
+            Lyrafy-release.apk
+          prerelease: false
+          make_latest: true
