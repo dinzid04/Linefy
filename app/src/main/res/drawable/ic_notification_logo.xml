@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Monochrome White Lyra Harp Notification Icon -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M6.5,3C5.12,3 4,4.12 4,5.5C4,6.44 4.52,7.26 5.29,7.69C5.1,8.94 5,10.22 5,11.5C5,16.19 8.13,20.14 12.44,21.25L11,22.5V23.5H17V22.5L15.56,21.25C18.71,20.44 21,17.59 21,14.2V4.5C21,3.67 20.33,3 19.5,3C18.67,3 18,3.67 18,4.5V14.2C18,16.69 16.09,18.73 13.65,18.97C10.42,18.72 8,15.52 8,11.5C8,10.27 8.11,9.05 8.32,7.87C8.73,7.41 9,6.81 9,6.15V5.5C9,4.12 7.88,3 6.5,3ZM10.5,6H12V17.5H10.5V6ZM13.5,6H15V17.2H13.5V6ZM16.2,6H17.2V15.5H16.2V6Z" />
+</vector>
